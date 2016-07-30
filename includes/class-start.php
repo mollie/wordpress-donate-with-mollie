@@ -13,15 +13,7 @@ class Dmm_Start {
         $this->wpdb = $wpdb;
 
         add_action('init', array($this, 'dmm_do_output_buffer'));
-        add_action('rest_api_init', function () {
-            register_rest_route('doneren-met-mollie/v1', '/webhook/', array(
-                'methods' => 'POST',
-                'callback' => array($this, 'dmm_webhook'),
-            ));
-        });
-
         add_filter('plugin_action_links_' . DMM_PLUGIN_BASE, array($this, 'dmm_settings_links'));
-
         add_shortcode('doneren_met_mollie', array($this, 'dmm_donate_form'));
 
         // Variable translations
@@ -150,7 +142,7 @@ class Dmm_Start {
 
 
             $dmm_url_site = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=='on'?'https://':'http://') . $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] . (strstr($_SERVER['REQUEST_URI'], '?') ? '&' : '?');
-            $dmm_webhook = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=='on'?'https://':'http://') . $_SERVER['HTTP_HOST'] . '/?rest_route=/doneren-met-mollie/v1/webhook';
+            $dmm_webhook = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=='on'?'https://':'http://') . $_SERVER['HTTP_HOST'] . DMM_WEBHOOK;
             $dmm_fields = get_option('dmm_form_fields');
 
             // Submit form, add donation
@@ -271,7 +263,7 @@ class Dmm_Start {
                             'recurringType' => 'first',
                             "description"   => $description,
                             "redirectUrl"   => $dmm_url_site . 'donation=' . $donation_id,
-                            "webhookUrl"    => $dmm_webhook . '&first=' . $this->wpdb->insert_id . '&secret=' . $secret,
+                            "webhookUrl"    => $dmm_webhook . 'first/' . $this->wpdb->insert_id . '/secret/' . $secret,
                             "method"        => $_POST['dmm_method'],
                             "metadata"      => array(
                                 "donation_id"   => $donation_id,
@@ -321,7 +313,7 @@ class Dmm_Start {
                         exit;
                     }
 
-                    echo '<p class="' . esc_attr(get_option('dmm_success_cls', DMM_SUCCESS_CLS)) . '">' . esc_html(get_option('dmm_success_msg', DMM_SUCCESS_MSG)) . '</p>';
+                    echo '<p class="' . esc_attr(get_option('dmm_success_cls', DMM_SUCCESS_CLS)) . '">' . esc_html__('Thank you for your donation!', DMM_TXT_DOMAIN) . '</p>';
                 }
                 else
                 {
@@ -331,7 +323,7 @@ class Dmm_Start {
                         exit;
                     }
 
-                    echo '<p class="' . esc_attr(get_option('dmm_failure_cls', DMM_FAILURE_CLS)) . '">' . esc_html(get_option('dmm_failure_msg', DMM_FAILURE_MSG)) . '</p>';
+                    echo '<p class="' . esc_attr(get_option('dmm_failure_cls', DMM_FAILURE_CLS)) . '">' . esc_html__('The payment was not successful, please try again.', DMM_TXT_DOMAIN) . '</p>';
                 }
             } else {
                 // Donation form
@@ -344,13 +336,13 @@ class Dmm_Start {
                         <p>
                             <select id="dmm_interval" name="dmm_recurring_interval" style="width: 100%" class="<?php echo esc_attr(get_option('dmm_fields_cls'));?>" onchange="dmm_recurring_methods(this.value);">
                                 <option value="one"><?php echo esc_html_e('One-time donation', DMM_TXT_DOMAIN);?></option>
-                                <?php if ($intervals['month']) { ?>
+                                <?php if (isset($intervals['month'])) { ?>
                                     <option value="month" <?php echo ($_POST['dmm_recurring_interval'] == 'month' ? 'selected' : '');?>><?php echo esc_html_e('Monthly', DMM_TXT_DOMAIN);?></option>
                                 <?php } ?>
-                                <?php if ($intervals['quarter']) { ?>
+                                <?php if (isset($intervals['quarter'])) { ?>
                                     <option value="quarter" <?php echo ($_POST['dmm_recurring_interval'] == 'quarter' ? 'selected' : '');?>><?php echo esc_html_e('Each quarter', DMM_TXT_DOMAIN);?></option>
                                 <?php } ?>
-                                <?php if ($intervals['year']) { ?>
+                                <?php if (isset($intervals['year'])) { ?>
                                     <option value="year" <?php echo ($_POST['dmm_recurring_interval'] == 'year' ? 'selected' : '');?>><?php echo esc_html_e('Annually', DMM_TXT_DOMAIN);?></option>
                                 <?php } ?>
                             </select>
@@ -596,174 +588,5 @@ class Dmm_Start {
         $projectList .= '</select>';
 
         return $projectList;
-    }
-
-    /**
-     * Get interval for subscription
-     *
-     * @since 2.1.0
-     * @param $string
-     * @return string
-     */
-    private function dmm_get_interval($string)
-    {
-        switch ($string) {
-            case 'month':
-                $interval = '1 month';
-                break;
-            case 'quarter':
-                $interval = '3 months';
-                break;
-            case 'year':
-                $interval = '12 months';
-                break;
-        }
-
-        return $interval;
-    }
-
-    /**
-     * Webhook
-     *
-     * @since 2.1.0
-     * @param $args
-     * @return string
-     */
-    public function dmm_webhook($args)
-    {
-        $dmm_webhook = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']=='on'?'https://':'http://') . $_SERVER['HTTP_HOST'] . '/?rest_route=/doneren-met-mollie/v1/webhook';
-
-        try {
-            // Connect with Mollie
-            $mollie = new Mollie_API_Client;
-            if (get_option('dmm_mollie_apikey'))
-                $mollie->setApiKey(get_option('dmm_mollie_apikey'));
-            else
-                return new WP_Error('dmm_no_api_key', 'No API-key set', array('status' => 400));
-
-            if (!isset($args['sub']))
-            {
-                // First payment of recurring donation or one-time donation
-                $payment_id = $_POST['id'];
-                if (!$payment_id)
-                    return new WP_Error('dmm_no_payment_id', 'No payment id', array('status' => 404));
-
-                $donation = $this->wpdb->get_row("SELECT * FROM " . DMM_TABLE_DONATIONS . " WHERE payment_id = '" . esc_sql($payment_id) . "'");
-
-                if (!$donation->id)
-                    return new WP_Error('dmm_donation_not_found', 'Donation not found', array('status' => 404));
-
-                $payment = $mollie->payments->get($payment_id);
-                $this->wpdb->query($this->wpdb->prepare("UPDATE " . DMM_TABLE_DONATIONS . " SET dm_status = %s, payment_method = %s, payment_mode = %s, customer_id = %s, subscription_id = %s WHERE id = %d",
-                    $payment->status,
-                    $payment->method,
-                    $payment->mode,
-                    $payment->customerId,
-                    $payment->subscriptionId,
-                    $donation->id
-                ));
-
-
-                if (isset($args['first'], $args['secret']) && ($payment->isPaid() && !$payment->isRefunded()))
-                {
-                    $customer = $this->wpdb->get_row("SELECT * FROM " . DMM_TABLE_DONORS . " WHERE id = '" . esc_sql($args['first']) . "' AND secret='" . esc_sql($args['secret']) . "'");
-
-                    if (!$customer->id)
-                        return new WP_Error('dmm_customer_not_found', 'Customer not found', array('status' => 404));
-
-                    $this->wpdb->query($this->wpdb->prepare("INSERT INTO " . DMM_TABLE_SUBSCRIPTIONS . "
-                    ( customer_id, created_at )
-                    VALUES ( %s, NOW())",
-                        $customer->id
-                    ));
-
-                    $sub_id = $this->wpdb->insert_id;
-                    $subscription = $mollie->customers_subscriptions->withParentId($customer->customer_id)->create(array(
-                        "amount"      => $customer->sub_amount,
-                        "interval"    => $this->dmm_get_interval($customer->sub_interval),
-                        "description" => $customer->sub_description,
-                        "webhookUrl"  => $dmm_webhook . '&sub=' . $sub_id,
-                    ));
-
-                    $this->wpdb->query($this->wpdb->prepare("UPDATE " . DMM_TABLE_SUBSCRIPTIONS . " SET subscription_id = %s, sub_mode = %s, sub_amount = %s, sub_times = %s, sub_interval = %s, sub_description = %s, sub_method = %s, sub_status = %s WHERE id = %d",
-                        $subscription->id,
-                        $subscription->mode,
-                        $subscription->amount,
-                        $subscription->times,
-                        $subscription->interval,
-                        $subscription->description,
-                        $subscription->method,
-                        $subscription->status,
-                        $sub_id
-                    ));
-                }
-
-                return 'OK, ' . $payment_id;
-            }
-            else
-            {
-                // Subscription
-                $sub = $this->wpdb->get_row("SELECT * FROM " . DMM_TABLE_SUBSCRIPTIONS . " WHERE id = '" . esc_sql($args['sub']) . "'");
-                if (!$sub->id)
-                    return new WP_Error('dmm_subscription_not_found', 'Subscription not found', array('status' => 404));
-
-
-                $firstDonation = $this->wpdb->get_row("SELECT * FROM " . DMM_TABLE_DONATIONS . " WHERE subscription_id = '" . esc_sql($sub->subscription_id) . "'");
-                if (!$firstDonation->id)
-                    return new WP_Error('dmm_donation_not_found', 'Donation not found', array('status' => 404));
-
-                $payment_id = $_POST['id'];
-                if (!$payment_id)
-                    return new WP_Error('dmm_no_payment_id', 'No payment id', array('status' => 404));
-
-
-                $donation_id = uniqid(rand(1,99));
-                $payment = $mollie->payments->get($payment_id);
-
-                $donation = $this->wpdb->get_row("SELECT * FROM " . DMM_TABLE_DONATIONS . " WHERE payment_id = '" . esc_sql($payment->id) . "'");
-                if (!$donation->id)
-                {
-                    // New payment
-                    $this->wpdb->query($this->wpdb->prepare("INSERT INTO " . DMM_TABLE_DONATIONS . "
-                    ( `time`, payment_id, customer_id, subscription_id, donation_id, dm_status, dm_amount, dm_name, dm_email, dm_project, dm_company, dm_address, dm_zipcode, dm_city, dm_country, dm_message, dm_phone, payment_method, payment_mode )
-                    VALUES ( %s, %s, %s, %s, %s, %s, %f, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )",
-                        date('Y-m-d H:i:s'),
-                        $payment->id,
-                        $payment->customerId,
-                        $payment->subscriptionId,
-                        $donation_id,
-                        $payment->status,
-                        $payment->amount,
-                        $firstDonation->dm_name,
-                        $firstDonation->dm_email,
-                        $firstDonation->dm_project,
-                        $firstDonation->dm_company,
-                        $firstDonation->dm_address,
-                        $firstDonation->dm_zipcode,
-                        $firstDonation->dm_city,
-                        $firstDonation->dm_country,
-                        $firstDonation->dm_message,
-                        $firstDonation->dm_phone,
-                        $payment->method,
-                        $payment->mode
-                    ));
-                }
-                else
-                {
-                    // Update payment
-                    $this->wpdb->query($this->wpdb->prepare("UPDATE " . DMM_TABLE_DONATIONS . " SET dm_status = %s, payment_method = %s, payment_mode = %s WHERE payment_id = %s",
-                        $payment->status,
-                        $payment->method,
-                        $payment->mode,
-                        $payment->id
-                    ));
-                }
-
-                return 'OK, ' . $payment_id;
-            }
-
-        } catch (Mollie_API_Exception $e) {
-            return new WP_Error('dmm_api_call_failed', "API call failed: " . $e->getMessage(), array('status' => 400));
-        }
     }
 }

@@ -181,11 +181,15 @@ class Dmm_Admin {
         <div class="wrap">
             <h2><?php esc_html_e('Donations', DMM_TXT_DOMAIN) ?></h2>
 
-            <?php
-            echo isset($dmm_msg) ? $dmm_msg : '';
+            <?php echo isset($dmm_msg) ? $dmm_msg : '';?>
 
-            $dmmTable->display();
-            ?>
+            <form action="admin.php">
+                <input type="hidden" name="page" value="<?php echo DMM_PAGE_DONATIONS;?>">
+
+                <input type="text" name="search" placeholder="<?php esc_html_e('Search') ?>">
+                <input type="submit" value="<?php esc_html_e('Search') ?>">
+            </form>
+            <?php $dmmTable->display();?>
         </div>
     <?php
     }

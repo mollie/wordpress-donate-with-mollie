@@ -3,7 +3,7 @@ Contributors: ndijkstra
 Tags: mollie,doneren,donate,ideal,mistercash,bancontact,bitcoin,creditcard,paypal,sofort,belfius,overboeking,recurring,incasso,debit,herhaalbetalingen,sepa,subscriptions
 Requires at least: 3.0.1
 Tested up to: 4.5.3
-Stable tag: 2.1.3
+Stable tag: 2.1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -11,7 +11,23 @@ Deze plugin is zowel geschikt voor eenmalige donaties als voor periodieke betali
 
 == Description ==
 
+Ben je op zoek naar een eenvoudige donatieplugin voor een goed doel of bijvoorbeeld de plaatselijke voetbalvereniging? Deze plugin is zowel geschikt voor eenmalige donaties als voor periodieke betalingen. Alle betaalmethodes van Mollie zijn in de plugin geïntegreerd. De plugin is bovendien in meerdere talen beschikbaar, namelijk in het Nederlands, Engels, Duits en Frans.
 
+= Mogelijkheden =
+
+Hoewel de plugin heel eenvoudig te installeren is, bevat deze genoeg mogelijkheden:
+
+* Donaties zijn terug te vinden in het WordPress admin-panel.
+* Donateurs kunnen NAW-gegevens invoeren.
+* Je kan verschillende projecten opgeven, zodat donateurs kunnen kiezen voor welk project zij willen doneren.
+* Je kan zelf kiezen welke gegevens donateurs moeten opgeven bij de donatie.
+* Je kan zelf een bedankpagina instellen.
+* Je kan standaard bedragen opgeven of de keuze aan de donateur overlaten.
+* Je kan het formulier naar wens vormgeven.
+
+= Herhaalde betalingen =
+
+Naast eenmalige donaties is deze plugin ook goed bruikbaar om periodiek bedragen te incasseren. Dit werkt aan de hand van de “Subscription API” van Mollie. Dit systeem maakt het mogelijk om bijvoorbeeld per maand, kwartaal of jaar een bepaald bedrag te incasseren via een Creditcard of door middel van SEPA-incasso.
 
 == Installation ==
 
@@ -22,6 +38,12 @@ Deze plugin is zowel geschikt voor eenmalige donaties als voor periodieke betali
 1. Plaats de shortcode [doneren_met_mollie] op een pagina waar het donatieformulier moet komen
 
 == Changelog ==
+
+= 2.1.4 =
+* Zoekfunctie donaties toegevoegd
+* Webhook vernieuwd waardoor problemen bij sommige installaties niet meer moeten voorkomen
+* Problemen met vertalingen opgelost
+* Bugfixes
 
 = 2.1.3 =
 * Problemen met database bij het updaten verholpen

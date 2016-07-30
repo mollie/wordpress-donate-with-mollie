@@ -49,7 +49,10 @@ class Dmm_List_Table extends WP_List_Table {
 
         $where = '';
         if (isset($_GET['subscription']))
-            $where = ' WHERE subscription_id="' . esc_sql($_GET['subscription']) . '"';
+            $where .= ' WHERE subscription_id="' . esc_sql($_GET['subscription']) . '"';
+
+        if (isset($_GET['search']))
+            $where .= ($where ? ' AND' : ' WHERE') . ' (dm_name LIKE "%' . esc_sql($_GET['search']) . '%" OR dm_email LIKE "%' . esc_sql($_GET['search']) . '%" OR dm_company LIKE "%' . esc_sql($_GET['search']) . '%" OR donation_id LIKE "%' . esc_sql($_GET['search']) . '%" OR payment_id LIKE "%' . esc_sql($_GET['search']) . '%")';
 
         $donations = $wpdb->get_results("SELECT * FROM " . DMM_TABLE_DONATIONS . $where . " ORDER BY time DESC", ARRAY_A);
 

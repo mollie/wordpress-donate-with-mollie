@@ -2,7 +2,7 @@
 /*
 Plugin Name: Doneren met Mollie
 Description: Donaties ontvangen via Mollie
-Version: 2.1.3
+Version: 2.1.4
 Author: Nick Dijkstra
 Author URI: http://nickdijkstra.nl
 Text Domain: doneren-met-mollie
@@ -29,11 +29,13 @@ global $wpdb;
 
 // Includes
 require_once DMM_PLUGIN_PATH . 'includes/config.php';
+require_once DMM_PLUGIN_PATH . 'includes/class-webhook.php';
 require_once DMM_PLUGIN_PATH . 'includes/class-start.php';
 
 if(!class_exists('Mollie_API_Client'))
     require_once DMM_PLUGIN_PATH . 'libs/mollie-api-php/src/Mollie/API/Autoloader.php';
 
+$dmm_webook = new Dmm_Webhook();
 $dmm = new Dmm_Start();
 
 // Admin includes and functions

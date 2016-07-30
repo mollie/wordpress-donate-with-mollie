@@ -45,11 +45,11 @@ class Dmm_Subscriptions_Table extends WP_List_Table {
         $sortable = array();
         $this->_column_headers = array($columns, $hidden, $sortable);
 
-        $subscriptions = $wpdb->get_results("SELECT * FROM " . DMM_TABLE_SUBSCRIPTIONS, ARRAY_A);
+        $subscriptions = $wpdb->get_results("SELECT * FROM " . DMM_TABLE_SUBSCRIPTIONS . $where, ARRAY_A);
 
         $per_page = 25;
         $current_page = $this->get_pagenum();
-        $total_items = count($donors);
+        $total_items = count($subscriptions);
 
         $d = array_slice($subscriptions,(($current_page-1)*$per_page),$per_page);
 
