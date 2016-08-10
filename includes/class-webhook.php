@@ -100,12 +100,11 @@ class Dmm_Webhook {
                 }
 
                 $payment = $mollie->payments->get($payment_id);
-                $this->wpdb->query($this->wpdb->prepare("UPDATE " . DMM_TABLE_DONATIONS . " SET dm_status = %s, payment_method = %s, payment_mode = %s, customer_id = %s, subscription_id = %s WHERE id = %d",
+                $this->wpdb->query($this->wpdb->prepare("UPDATE " . DMM_TABLE_DONATIONS . " SET dm_status = %s, payment_method = %s, payment_mode = %s, customer_id = %s WHERE id = %d",
                     $payment->status,
                     $payment->method,
                     $payment->mode,
                     $payment->customerId,
-                    $payment->subscriptionId,
                     $donation->id
                 ));
 
@@ -132,6 +131,11 @@ class Dmm_Webhook {
                         "interval"    => $this->dmm_get_interval($customer->sub_interval),
                         "description" => $customer->sub_description,
                         "webhookUrl"  => $dmm_webhook . 'sub/' . $sub_id,
+                    ));
+
+                    $this->wpdb->query($this->wpdb->prepare("UPDATE " . DMM_TABLE_DONATIONS . " SET subscription_id = %s WHERE id = %d",
+                        $subscription->id,
+                        $donation->id
                     ));
 
                     $this->wpdb->query($this->wpdb->prepare("UPDATE " . DMM_TABLE_SUBSCRIPTIONS . " SET subscription_id = %s, sub_mode = %s, sub_amount = %s, sub_times = %s, sub_interval = %s, sub_description = %s, sub_method = %s, sub_status = %s WHERE id = %d",

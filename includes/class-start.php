@@ -444,7 +444,20 @@ class Dmm_Start {
                     <?php echo $this->dmm_payment_methods($mollie);?>
 
                     <br>
-                    <?php echo '<script>window.onload=function(){if(document.getElementById(\'dmm_interval\').value!=\'one\'){document.getElementById(\'dmm_permission\').style.display = \'block\';}if(document.getElementById(\'dmm_dd\').value!=\'--\'){document.getElementById(\'dmm_amount\').value=document.getElementById(\'dmm_dd\').value;document.getElementById(\'dmm_amount\').style.display = \'none\';} dmm_recurring_methods(document.getElementById(\'dmm_interval\').value);}</script>';?>
+                    <script>
+                        window.onload=function(){
+                            if(document.getElementById('dmm_dd').value!='--'){
+                                document.getElementById('dmm_amount').value=document.getElementById('dmm_dd').value;
+                                document.getElementById('dmm_amount').style.display = 'none';
+                            }
+                            <?php if (get_option('dmm_recurring')) { ?>
+                                if(document.getElementById('dmm_interval').value!='one'){
+                                    document.getElementById('dmm_permission').style.display = 'block';
+                                }
+                                dmm_recurring_methods(document.getElementById('dmm_interval').value);
+                            <?php } ?>
+                        }
+                    </script>
                     <label id="dmm_permission" style="display:none"><input type="checkbox" name="dmm_permission"> <?php echo sprintf(__('I hereby authorize %s to collect the amount shown above from my account periodically.', DMM_TXT_DOMAIN), get_option('dmm_name_foundation'));?></label>
 
                     <br><br>
@@ -473,39 +486,42 @@ class Dmm_Start {
      */
     private function dmm_payment_methods($mollie) {
         $option = get_option('dmm_methods_display', 'list');
+        $methods = '';
 
-        $recurring = array('dd' => false, 'cc' => false);
-        foreach ($mollie->methods->all() as $method)
+        if (get_option('dmm_recurring'))
         {
-            if ($method->id == 'directdebit')$recurring['dd'] = true;
-            if ($method->id == 'creditcard')$recurring['cc'] = true;
-        }
+            $recurring = array('dd' => false, 'cc' => false);
+            foreach ($mollie->methods->all() as $method)
+            {
+                if ($method->id == 'directdebit')$recurring['dd'] = true;
+                if ($method->id == 'creditcard')$recurring['cc'] = true;
+            }
 
-        $scriptCC = '';
-        if (!$recurring['cc'])
-        {
-            $scriptCC = '
+            $scriptCC = '';
+            if (!$recurring['cc'])
+            {
+                $scriptCC = '
                 var x = document.getElementsByClassName("dmm_cc");
                 var i;
                 for (i = 0; i < x.length; i++) {
                     x[i].style.display = value!="one" ? "none" : "block";
                     x[i].disabled = value!="one" ? "disabled" : "";
                 }';
-        }
+            }
 
-        $scriptDD = '';
-        if (!$recurring['dd'])
-        {
-            $scriptDD = '
+            $scriptDD = '';
+            if (!$recurring['dd'])
+            {
+                $scriptDD = '
                 var x = document.getElementsByClassName("dmm_dd");
                 var i;
                 for (i = 0; i < x.length; i++) {
                     x[i].style.display = value!="one" ? "none" : "block";
                     x[i].disabled = value!="one" ? "disabled" : "";
                 }';
-        }
+            }
 
-        $methods = '
+            $methods .= '
             <script>
             function dmm_recurring_methods(value) {
                 var x = document.getElementsByClassName("dmm_recurring");
@@ -518,6 +534,8 @@ class Dmm_Start {
                 document.getElementById("dmm_permission").style.display = (value=="one" ? "none" : "block");
             }
             </script>';
+        }
+
 
         if ($option == 'list')
         {
