@@ -204,14 +204,16 @@ class Dmm_Start {
                             '{name}',
                             '{project}',
                             '{amount}',
-                            '{company}'
+                            '{company}',
+                            '{email}',
                         ),
                         array(
                             $donation_id,
-                            $_POST['dmm_name'],
-                            $_POST['dmm_project'],
+                            isset($_POST['dmm_name']) ? $_POST['dmm_name'] : '',
+                            isset($_POST['dmm_project']) ? $_POST['dmm_project'] : '',
                             $amount,
-                            $_POST['dmm_company']
+                            isset($_POST['dmm_company']) ? $_POST['dmm_company'] : '',
+                            isset($_POST['dmm_email']) ? $_POST['dmm_email'] : '',
                         ),
                         get_option('dmm_payment_description')
                     );
@@ -446,7 +448,8 @@ class Dmm_Start {
                     <br>
                     <script>
                         window.onload=function(){
-                            if(document.getElementById('dmm_dd').value!='--'){
+                            var dmm_dd = document.getElementById('dmm_dd');
+                            if(typeof dmm_dd !== "undefined" && dmm_dd.value != '--'){
                                 document.getElementById('dmm_amount').value=document.getElementById('dmm_dd').value;
                                 document.getElementById('dmm_amount').style.display = 'none';
                             }

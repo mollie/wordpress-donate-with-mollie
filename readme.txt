@@ -1,9 +1,9 @@
 === Plugin Name ===
 Contributors: ndijkstra
-Tags: mollie,doneren,donate,ideal,mistercash,bancontact,bitcoin,creditcard,paypal,sofort,belfius,overboeking,recurring,incasso,debit,herhaalbetalingen,sepa,subscriptions
+Tags: mollie,doneren,donate,ideal,mistercash,bancontact,bitcoin,creditcard,paypal,sofort,belfius,overboeking,recurring,incasso,debit,herhaalbetalingen,sepa,subscriptions,kbc,cbc
 Requires at least: 3.0.1
-Tested up to: 4.5.3
-Stable tag: 2.1.5
+Tested up to: 4.6.1
+Stable tag: 2.1.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,11 @@ Naast eenmalige donaties is deze plugin ook goed bruikbaar om periodiek bedragen
 1. Plaats de shortcode [doneren_met_mollie] op een pagina waar het donatieformulier moet komen
 
 == Changelog ==
+
+= 2.1.6 =
+* E-mailadres mogelijk in omschrijving met variabele {email}
+* Update Mollie API client naar v1.7.1
+* Bugfixes
 
 = 2.1.5 =
 * Bugfixes
