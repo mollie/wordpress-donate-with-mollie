@@ -258,9 +258,8 @@ class Dmm_Start {
                             $secret
                         ));
 
-                        $firstAmount = ($_POST['dmm_method'] == 'mistercash' ? 0.02 : 0.01);
                         $payment = $mollie->payments->create(array(
-                            'amount'        => $firstAmount,
+                            'amount'        => $amount,
                             'customerId'    => $customer->id,
                             'recurringType' => 'first',
                             "description"   => $description,
@@ -280,7 +279,7 @@ class Dmm_Start {
                         $payment->id,
                         (isset($customer) ? $customer->id : null),
                         $donation_id,
-                        isset($firstAmount) ? $firstAmount : $amount,
+                        $amount,
                         isset($_POST['dmm_name']) ? $_POST['dmm_name'] : null,
                         isset($_POST['dmm_email']) ? $_POST['dmm_email'] : null,
                         isset($_POST['dmm_project']) ? $_POST['dmm_project'] : null,

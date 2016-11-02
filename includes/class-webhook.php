@@ -126,11 +126,13 @@ class Dmm_Webhook {
                     ));
 
                     $sub_id = $this->wpdb->insert_id;
+                    $interval = $this->dmm_get_interval($customer->sub_interval);
                     $subscription = $mollie->customers_subscriptions->withParentId($customer->customer_id)->create(array(
                         "amount"      => $customer->sub_amount,
-                        "interval"    => $this->dmm_get_interval($customer->sub_interval),
+                        "interval"    => $interval,
                         "description" => $customer->sub_description,
                         "webhookUrl"  => $dmm_webhook . 'sub/' . $sub_id,
+                        "startDate"   => date('Y-m-d', strtotime("+" . $interval, strtotime(date('Y-m-d')))),
                     ));
 
                     $this->wpdb->query($this->wpdb->prepare("UPDATE " . DMM_TABLE_DONATIONS . " SET subscription_id = %s WHERE id = %d",

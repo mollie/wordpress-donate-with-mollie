@@ -439,7 +439,7 @@ class Dmm_Admin {
                             <label><?php esc_html_e('Payment description', DMM_TXT_DOMAIN);?></label>
                         </th>
                         <td class="forminp">
-                            <input type="text" size="50" name="dmm_payment_description" value="<?php echo esc_attr(get_option('dmm_payment_description', DMM_PAYMENT_DESCRIPTION));?>"><br>
+                            <input type="text" size="50" name="dmm_payment_description" value="<?php echo esc_attr(get_option('dmm_payment_description'));?>"><br>
                             <small><?php printf(esc_html__('You can use: %s', DMM_TXT_DOMAIN), '{id} {name} {email} {project} {amount} {company}');?></small>
                         </td>
                     </tr>

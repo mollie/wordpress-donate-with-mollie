@@ -2,7 +2,7 @@
 /*
 Plugin Name: Doneren met Mollie
 Description: Donaties ontvangen via Mollie
-Version: 2.1.6
+Version: 2.1.7
 Author: Nick Dijkstra
 Author URI: http://nickdijkstra.nl
 Text Domain: doneren-met-mollie
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 
 // Plugin Version
 if (!defined('DMM_VERSION')) {
-    define('DMM_VERSION', '2.1.6');
+    define('DMM_VERSION', '2.1.7');
 }
 
 // Plugin Folder Path
