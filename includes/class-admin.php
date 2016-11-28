@@ -14,6 +14,7 @@ class Dmm_Admin {
 
         add_action('admin_menu', array($this, 'dmm_admin_menu'));
         add_action('admin_init', array($this, 'dmm_register_settings'));
+        add_action('admin_post_dmm_export', array($this, 'dmm_export_donations'));
     }
 
     /**
@@ -189,9 +190,66 @@ class Dmm_Admin {
                 <input type="text" name="search" placeholder="<?php esc_html_e('Search') ?>">
                 <input type="submit" value="<?php esc_html_e('Search') ?>">
             </form>
+            <a style="float: right;" href="<?php echo admin_url('admin-post.php?action=dmm_export' . (isset($_GET['subscription']) ? '&subscription=' . $_GET['subscription'] : '') . (isset($_GET['search']) ? '&search=' . $_GET['search'] : ''));?>"><?php esc_html_e('Export', DMM_TXT_DOMAIN) ?></a>
             <?php $dmmTable->display();?>
         </div>
     <?php
+    }
+
+    public function dmm_export_donations()
+    {
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=donations.csv');
+        $output = fopen('php://output', 'w');
+
+        fputcsv($output, array(
+            esc_html_e('Date/time', DMM_TXT_DOMAIN),
+            esc_html_e('Name', DMM_TXT_DOMAIN),
+            esc_html_e('Company name', DMM_TXT_DOMAIN),
+            esc_html_e('Email address', DMM_TXT_DOMAIN),
+            esc_html_e('Phone number', DMM_TXT_DOMAIN),
+            esc_html_e('Address', DMM_TXT_DOMAIN),
+            esc_html_e('Zipcode', DMM_TXT_DOMAIN),
+            esc_html_e('City', DMM_TXT_DOMAIN),
+            esc_html_e('Country', DMM_TXT_DOMAIN),
+            esc_html_e('Project', DMM_TXT_DOMAIN),
+            esc_html_e('Message', DMM_TXT_DOMAIN),
+            esc_html_e('Amount', DMM_TXT_DOMAIN),
+            esc_html_e('Status', DMM_TXT_DOMAIN),
+            esc_html_e('Payment method', DMM_TXT_DOMAIN),
+            esc_html_e('Donation ID', DMM_TXT_DOMAIN),
+            esc_html_e('Payment ID', DMM_TXT_DOMAIN),
+        ));
+
+        $where = '';
+        if (isset($_GET['subscription']))
+            $where .= ' WHERE subscription_id="' . esc_sql($_GET['subscription']) . '"';
+
+        if (isset($_GET['search']))
+            $where .= ($where ? ' AND' : ' WHERE') . ' (dm_name LIKE "%' . esc_sql($_GET['search']) . '%" OR dm_email LIKE "%' . esc_sql($_GET['search']) . '%" OR dm_company LIKE "%' . esc_sql($_GET['search']) . '%" OR donation_id LIKE "%' . esc_sql($_GET['search']) . '%" OR payment_id LIKE "%' . esc_sql($_GET['search']) . '%")';
+
+        $donations = $this->wpdb->get_results("SELECT * FROM " . DMM_TABLE_DONATIONS . $where . " ORDER BY time DESC");
+        foreach ($donations as $donation)
+        {
+            fputcsv($output, array(
+                $donation->time,
+                $donation->dm_name,
+                $donation->dm_company,
+                $donation->dm_email,
+                $donation->dm_phone,
+                $donation->dm_address,
+                $donation->dm_zipcode,
+                $donation->dm_city,
+                $donation->dm_country,
+                $donation->dm_project,
+                $donation->dm_message,
+                $donation->dm_amount,
+                $donation->dm_status,
+                $donation->payment_method,
+                $donation->donation_id,
+                $donation->payment_id,
+            ));
+        }
     }
 
     public function dmm_page_donation()
@@ -616,9 +674,8 @@ class Dmm_Admin {
                 return;
             }
 
-            foreach ($mollie->methods->all() as $method)
-                if ($method->id == 'directdebit' || $method->id == 'creditcard')
-                    $recurring = true;
+            if (count($mollie->methods->all(0,50, array('recurringType' => 'recurring'))))
+                $recurring = true;
 
         } catch (Mollie_API_Exception $e) {
             echo "<div class=\"error notice\"><p>API call failed: " . htmlspecialchars($e->getMessage()) . "</p></div>";

@@ -13,6 +13,7 @@ define('DMM_TABLE_SUBSCRIPTIONS', $wpdb->prefix . 'donate_mollie_subscriptions')
 define('DMM_TXT_DOMAIN', 'doneren-met-mollie');
 
 // Pages
+define('DMM_PAGE_EXPORT', 'doneren-met-mollie-export');
 define('DMM_PAGE_DONATION', 'doneren-met-mollie-donatie');
 define('DMM_PAGE_DONATIONS', 'doneren-met-mollie');
 define('DMM_PAGE_DONORS', 'doneren-met-mollie-donateurs');

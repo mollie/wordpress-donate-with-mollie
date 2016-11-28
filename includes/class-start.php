@@ -493,7 +493,7 @@ class Dmm_Start {
         if (get_option('dmm_recurring'))
         {
             $recurring = array('dd' => false, 'cc' => false);
-            foreach ($mollie->methods->all() as $method)
+            foreach ($mollie->methods->all(0,50,array('recurringType' => 'recurring')) as $method)
             {
                 if ($method->id == 'directdebit')$recurring['dd'] = true;
                 if ($method->id == 'creditcard')$recurring['cc'] = true;
@@ -584,7 +584,7 @@ class Dmm_Start {
      */
     private function dmm_recurring_method($id)
     {
-        $recurring = array('ideal', 'mistercash', 'belfius', 'sofort', 'creditcard');
+        $recurring = array('ideal', 'mistercash', 'kbc', 'belfius', 'sofort', 'creditcard');
 
         return !in_array($id, $recurring) ? 'class="dmm_recurring"' : 'class="' . ($id == 'creditcard' ? 'dmm_cc' : 'dmm_dd') . '"';
     }
